@@ -1,9 +1,9 @@
 [submodule "unity"]
-	path = unity
+	path = external/unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
 [submodule "test/ext/supreme"]
-	path = test/ext/supreme
+	path = external/supreme
 	url = https://github.com/FranFrau/Supreme-Tester-Libft.git
 [submodule "test/ext/Libftest"]
-	path = test/ext/Libftest
+	path = external/Libftest
 	url = https://github.com/jtoty/Libftest.git

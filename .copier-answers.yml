@@ -1,0 +1,14 @@
+
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: effcea5
+_src_path: /home/musicvivireal/code/github.com/codingvivi/42-c_template
+build_system: makefile
+copy_build_to_root: true
+flat_repo: true
+project_name: libft
+project_type: StaticLib
+submit_makefile: true
+use_clang_format: true
+use_clangd: true
+use_just: true
+use_libft: false

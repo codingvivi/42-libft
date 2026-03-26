@@ -1,159 +1,188 @@
-
-CC ?= cc
-CFLAGS = -g -Werror -Wall -Wextra -Wpedantic
-LDFLAGS =
-LDLIBS =
-
 NAME = libft.a
+TEST_NAME = runner
 
-PTH_SRC = .
-PTH_SRC_UNITY = unity/src
-PTH_SRC_TEST = test
+.DEFAULT_GOAL := all
 
-PTH_BLD = build
-PTH_BLD_OBJ = $(PTH_BLD)/obj
-PTH_BLD_UNITY = $(PTH_BLD)/unity
-PTH_BLD_UNITY_OBJ = $(PTH_BLD_UNITY)/obj
-PTH_BLD_TEST = $(PTH_BLD)/test
-PTH_BLD_TEST_RUNSRC = $(PTH_BLD_TEST)/runner_src
-PTH_BLD_TEST_OBJ = $(PTH_BLD_TEST)/obj
-PTH_BLD_TEST_BIN = $(PTH_BLD_TEST)/bin
+CC         = cc
+CFLAGS     = -Wall -Wextra -Werror -fPIE
+TEST_CFLAGS = $(CFLAGS)
+INCLUDES   = -I./src -I./include
 
-ifeq ($(OSTYPE),cygwin)
-	CMD_CLEAN = rm -f
-	CMD_MKPTH = mkdir -p
-	TARGET_EXTENSION = .out
-else ifeq ($(OS),Windows_NT)
-	CMD_CLEAN = del /F /Q
-	CMD_MKPTH = mkdir
-	TARGET_EXTENSION = .exe
-else
-	CMD_CLEAN = rm -f
-	CMD_MKPTH = mkdir -p
-	TARGET_EXTENSION = .out
+AR = ar -rcs
+
+RM = rm -rf
+
+RELEASE_TAG  ?=
+RELEASE_NAME = libft_turnin_$(RELEASE_TAG).tar.gz
+RELEASE_BASE = $(basename $(basename $(RELEASE_NAME)))
+
+
+FILES = \
+	ft_isalpha \
+	ft_isdigit \
+	ft_isalnum \
+	ft_isascii \
+	ft_isprint \
+	ft_strlen \
+	ft_strlcat \
+	ft_strlcpy \
+	ft_strncmp \
+	ft_atoi \
+	ft_memcmp \
+	ft_memcpy \
+	ft_memset \
+	ft_memchr \
+	ft_memmove \
+	ft_strchr \
+	ft_bzero \
+	ft_strnstr \
+	ft_toupper \
+	ft_tolower \
+	ft_strrchr \
+	ft_calloc \
+	ft_strdup \
+	ft_substr \
+	ft_strjoin \
+	ft_strtrim \
+	ft_split \
+	ft_itoa \
+	ft_strmapi \
+	ft_striteri \
+	ft_putchar_fd \
+	ft_putstr_fd \
+	ft_putendl_fd \
+	ft_putnbr_fd \
+	ft_lstnew \
+	ft_lstadd_front \
+	ft_lstsize \
+	ft_lstlast \
+	ft_lstadd_back \
+	ft_lstdelone \
+	ft_lstclear \
+	ft_lstiter \
+	ft_lstmap
+
+
+ROOT_DIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+# code
+SRC_DIR     := $(ROOT_DIR)/src
+INCLUDE_DIR := $(ROOT_DIR)/include
+TEST_SRC_DIR := $(ROOT_DIR)/test
+
+# build output
+BUILD_DIR   := $(ROOT_DIR)/build
+OBJ_DIR     := $(BUILD_DIR)/obj
+SRC_OBJ_DIR := $(OBJ_DIR)/src
+TEST_OBJ_DIR := $(OBJ_DIR)/test
+
+# build results
+BIN_DIR      := $(BUILD_DIR)/bin
+SRC_BIN_DIR  := $(BIN_DIR)/src
+TEST_BIN_DIR := $(BIN_DIR)/test
+LIB_DIR      := $(BUILD_DIR)/lib
+
+# dist
+DIST_DIR := $(BUILD_DIR)/dist
+
+HEADER_FILES = libft
+
+TEST_FILES = main
+
+SRCS = $(FILES:%=$(SRC_DIR)/%.c)
+HDRS = $(HEADER_FILES:%=$(INCLUDE_DIR)/%.h)
+OBJS = $(FILES:%=$(SRC_OBJ_DIR)/%.o)
+LIB  = $(LIB_DIR)/$(NAME)
+TEST_SRCS = $(TEST_FILES:%=$(TEST_SRC_DIR)/%.c)
+TEST_OBJS = $(TEST_FILES:%=$(TEST_OBJ_DIR)/%.o)
+
+DIST_FILES = Makefile README.md $(SRCS) $(HDRS)
+
+# build
+all: $(LIB)
+ifeq ($(TURNIN_RUN),true)
+	cp $(LIB) $(ROOT_DIR)/$(NAME)
 endif
-
-CMD_RUNGEN = unity/auto/generate_test_runner.rb
-
-#SRCS = $(wildcard $(PTH_SRC)/*.c)
-
-SRCS = \
-	ft_isalpha.c \
-	ft_isdigit.c \
-	ft_isalnum.c \
-	ft_isascii.c \
-	ft_isprint.c \
-	ft_strlen.c \
-	ft_strlcat.c \
-	ft_strlcpy.c \
-	ft_strncmp.c \
-	ft_atoi.c\
-	ft_memcmp.c \
-	ft_memcpy.c \
-	ft_memset.c \
-	ft_memchr.c \
-	ft_memmove.c \
-	ft_strchr.c \
-	ft_bzero.c \
-	ft_strnstr.c \
-	ft_toupper.c \
-	ft_tolower.c \
-	ft_strrchr.c \
-	ft_calloc.c \
-	ft_strdup.c \
-	ft_substr.c \
-	ft_strjoin.c \
-	ft_strtrim.c \
-	ft_split.c \
-	ft_itoa.c \
-	ft_strmapi.c \
-	ft_striteri.c \
-	ft_putchar_fd.c \
-	ft_putstr_fd.c \
-	ft_putendl_fd.c \
-	ft_putnbr_fd.c \
-	ft_lstnew.c \
-	ft_lstadd_front.c \
-	ft_lstsize.c \
-	ft_lstlast.c \
-	ft_lstadd_back.c \
-	ft_lstdelone.c \
-	ft_lstclear.c \
-	ft_lstiter.c \
-	ft_lstmap.c
-
-# SRCS_TO_ADD = \
-
-# ifneq (,$(filter bonus,$(MAKECMDGOALS)))
-#     SRCS += $(SRCS_BONUS)
-# endif
-
-
-OBJS = $(addprefix $(PTH_BLD_OBJ)/, $(SRCS:.c=.o))
-#$(info $(OBJS))
-
-TEST_SRC_FILES = $(wildcard $(PTH_SRC_TEST)/test_*.c)
-TEST_NAMES = $(patsubst $(PTH_SRC_TEST)/test_%.c,%,$(TEST_SRC_FILES))
-TEST_BINS = $(addprefix $(PTH_BLD_TEST_BIN)/,$(addsuffix _Runner$(TARGET_EXTENSION),$(TEST_NAMES)))
-
-.PRECIOUS: $(PTH_BLD_TEST_RUNSRC)/test_%_Runner.c $(PTH_BLD_TEST_OBJ)/test_%.o $(PTH_BLD_TEST_OBJ)/test_%_Runner.o
-
-.PHONY: all test test-all
-
-all: $(NAME)
-
-$(NAME): $(OBJS)
-	ar rcs $(NAME) $(OBJS)
-	@echo "Created $(NAME)"
-
-$(PTH_BLD_OBJ)/%.o: $(PTH_SRC)/%.c | $(PTH_BLD_OBJ)
-	$(CC) $(CFLAGS) -I. -c $< -o $@
 
 bonus: all
 
-test: test-all
+# archive objects into static library
+$(LIB): $(OBJS) | $(LIB_DIR)
+	$(AR) $@ $(OBJS)
 
-test-all: $(TEST_BINS)
-	@echo "Running all tests...\n"
-	@for test_bin in $(TEST_BINS); do \
-		echo "===> Running: $$test_bin"; \
-		./$$test_bin || exit 1; \
-		echo "\n"; \
-	done
+# compile source files to objects
+$(SRC_OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(SRC_OBJ_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-$(PTH_BLD_TEST_BIN)/%_Runner$(TARGET_EXTENSION): $(PTH_BLD_TEST_OBJ)/test_%.o $(NAME) $(PTH_BLD_TEST_OBJ)/test_%_Runner.o $(PTH_BLD_UNITY_OBJ)/unity.o $(PTH_BLD_TEST_OBJ)/helpers.o | $(PTH_BLD_TEST_BIN)
-	$(CC) $(LDFLAGS) $(LDLIBS) $^ -o $@
+# move flat source files into src/ if they exist in root
+$(SRC_DIR)/%.c: %.c | $(SRC_DIR)
+	mv $< $@
 
-$(PTH_BLD_TEST_OBJ)/test_%.o: $(PTH_SRC_TEST)/test_%.c | $(PTH_BLD_TEST_OBJ)
-	$(CC) $(CFLAGS) -I. -I$(PTH_SRC_UNITY) -I$(PTH_SRC_TEST) -c $< -o $@
+# move flat headers into include/ if they exist in root
+$(INCLUDE_DIR)/%.h: %.h | $(INCLUDE_DIR)
+	mv $< $@
 
-$(PTH_BLD_TEST_OBJ)/helpers.o: $(PTH_SRC_TEST)/helpers.c $(PTH_SRC_TEST)/helpers.h | $(PTH_BLD_TEST_OBJ)
-	$(CC) $(CFLAGS) -I. -I$(PTH_SRC_UNITY) -I$(PTH_SRC_TEST) -c $< -o $@
+# create directories
+$(SRC_OBJ_DIR): | $(BUILD_DIR)
+	mkdir -p $(SRC_OBJ_DIR)
 
-$(PTH_BLD_TEST_OBJ)/test_%_Runner.o: $(PTH_BLD_TEST_RUNSRC)/test_%_Runner.c | $(PTH_BLD_TEST_OBJ)
-	$(CC) $(CFLAGS) -I. -I$(PTH_SRC_UNITY) -I$(PTH_SRC_TEST) -c $< -o $@
+$(TEST_OBJ_DIR): | $(BUILD_DIR)
+	mkdir -p $(TEST_OBJ_DIR)
 
-$(PTH_BLD_TEST_RUNSRC)/test_%_Runner.c: $(PTH_SRC_TEST)/test_%.c | $(PTH_BLD_TEST_RUNSRC)
-	@echo "Generating runner for $<..."
-	@ruby $(CMD_RUNGEN) $< $@
+$(SRC_BIN_DIR): | $(BUILD_DIR)
+	mkdir -p $(SRC_BIN_DIR)
 
-$(PTH_BLD_UNITY_OBJ)/unity.o: $(PTH_SRC_UNITY)/unity.c | $(PTH_BLD_UNITY_OBJ)
-	$(CC) $(CFLAGS) -I$(PTH_SRC_UNITY) -c $< -o $@
+$(TEST_BIN_DIR): | $(BUILD_DIR)
+	mkdir -p $(TEST_BIN_DIR)
 
-$(PTH_BLD_OBJ) $(PTH_BLD_UNITY_OBJ) $(PTH_BLD_TEST_RUNSRC) $(PTH_BLD_TEST_OBJ) $(PTH_BLD_TEST_BIN):
-	@$(CMD_MKPTH) $@
+$(LIB_DIR): | $(BUILD_DIR)
+	mkdir -p $(LIB_DIR)
 
-.PHONY: all clean fclean re retest
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
+$(SRC_DIR):
+	mkdir -p $(SRC_DIR)
+
+$(INCLUDE_DIR):
+	mkdir -p $(INCLUDE_DIR)
+
+$(DIST_DIR): | $(BUILD_DIR)
+	mkdir -p $(DIST_DIR)
+
+# initialize project structure from flat layout
+init: $(SRCS) $(HDRS)
+
+# create flat distribution tarball for turnin
+dist: | $(DIST_DIR)
+	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
+	mkdir -p $(DIST_DIR)/$(RELEASE_BASE)
+	cp $(DIST_FILES) $(DIST_DIR)/$(RELEASE_BASE)/
+	sed -i '1i TURNIN_RUN = true' $(DIST_DIR)/$(RELEASE_BASE)/Makefile
+	tar -czf $(DIST_DIR)/$(RELEASE_NAME) -C $(DIST_DIR) $(RELEASE_BASE)
+	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
+
+# build and run tests
+test: $(TEST_NAME)
+
+# link test runner
+$(TEST_NAME): $(LIB) $(TEST_OBJS) | $(TEST_BIN_DIR)
+	$(CC) $(CFLAGS) $(TEST_OBJS) $(LIB) -o $(TEST_BIN_DIR)/$(TEST_NAME)
+
+# compile test files to objects
+$(TEST_OBJ_DIR)/%.o: $(TEST_SRC_DIR)/%.c | $(TEST_OBJ_DIR)
+	$(CC) $(TEST_CFLAGS) $(INCLUDES) -c $< -o $@
+
+# remove object files
 clean:
-	@echo "Cleaning intermediate files..."
-	@$(CMD_CLEAN) $(OBJS)
-	@$(CMD_CLEAN) -r $(PTH_BLD_TEST) 
+	$(RM) $(OBJ_DIR)
 
+# remove all build artifacts
 fclean: clean
-	@echo "Cleaning all build artifacts..."
-	@$(CMD_CLEAN) $(NAME)
-	@$(CMD_CLEAN) -r $(PTH_BLD) 
+	$(RM) $(LIB) $(TEST_BIN_DIR)/$(TEST_NAME)
+	$(RM) $(ROOT_DIR)/$(NAME)
 
+# full rebuild
 re: fclean all
-retest: fclean test
+
+.PHONY: all bonus init dist test clean fclean re
