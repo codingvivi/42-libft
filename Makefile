@@ -178,11 +178,19 @@ clean:
 	$(RM) $(OBJ_DIR)
 
 # remove all build artifacts
-fclean: clean
+hclean: clean
 	$(RM) $(LIB) $(TEST_BIN_DIR)/$(TEST_NAME)
 	$(RM) $(ROOT_DIR)/$(NAME)
 
-# full rebuild
-re: fclean all
+# flatten back to root (undo init)
+fclean: hclean
+	-mv $(SRC_DIR)/*.c $(ROOT_DIR)/
+	-mv $(INCLUDE_DIR)/*.h $(ROOT_DIR)/
+ifeq ($(TURNIN_RUN),true)
+	-rmdir $(SRC_DIR) $(INCLUDE_DIR) 2>/dev/null; true
+endif
 
-.PHONY: all bonus init dist test clean fclean re
+# full rebuild
+re: hclean all
+
+.PHONY: all bonus init dist test clean fclean hclean re
