@@ -6,7 +6,7 @@ TEST_NAME = runner
 CC         = cc
 CFLAGS     = -Wall -Wextra -Werror -fPIE
 TEST_CFLAGS = $(CFLAGS)
-INCLUDES   = -I./src -I./include
+INCLUDES   = -I./src -I./src/ft_printf -I./include
 
 AR = ar -rcs
 
@@ -62,9 +62,16 @@ FILES = \
 	ft_lstiter \
 	ft_lstmap
 
+PRINTF_FILES = \
+	ft_printf \
+	ft_pf_putchar_fd \
+	ft_pf_putnbr_base_fd \
+	ft_pf_putptr_fd \
+	ft_pf_putstr_fd
 
 # code
 SRC_DIR     := src
+PRINTF_SRC_DIR := $(SRC_DIR)/ft_printf
 INCLUDE_DIR := include
 TEST_SRC_DIR := test
 
@@ -72,6 +79,7 @@ TEST_SRC_DIR := test
 BUILD_DIR   := build
 OBJ_DIR     := $(BUILD_DIR)/obj
 SRC_OBJ_DIR := $(OBJ_DIR)/src
+PRINTF_OBJ_DIR := $(SRC_OBJ_DIR)/ft_printf
 TEST_OBJ_DIR := $(OBJ_DIR)/test
 
 # build results
@@ -88,8 +96,11 @@ HEADER_FILES = libft
 TEST_FILES = main
 
 SRCS = $(FILES:%=$(SRC_DIR)/%.c)
+PRINTF_SRCS = $(PRINTF_FILES:%=$(PRINTF_SRC_DIR)/%.c)
 HDRS = $(HEADER_FILES:%=$(INCLUDE_DIR)/%.h)
 OBJS = $(FILES:%=$(SRC_OBJ_DIR)/%.o)
+PRINTF_OBJS = $(PRINTF_FILES:%=$(PRINTF_OBJ_DIR)/%.o)
+ALL_OBJS = $(OBJS) $(PRINTF_OBJS)
 LIB  = $(LIB_DIR)/$(NAME)
 TEST_SRCS = $(TEST_FILES:%=$(TEST_SRC_DIR)/%.c)
 TEST_OBJS = $(TEST_FILES:%=$(TEST_OBJ_DIR)/%.o)
@@ -108,11 +119,15 @@ bonus: all
 $(NAME): all
 
 # archive objects into static library
-$(LIB): $(OBJS) | $(LIB_DIR)
-	$(AR) $@ $(OBJS)
+$(LIB): $(ALL_OBJS) | $(LIB_DIR)
+	$(AR) $@ $(ALL_OBJS)
 
 # compile source files to objects
 $(SRC_OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(SRC_OBJ_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# compile ft_printf source files to objects
+$(PRINTF_OBJ_DIR)/%.o: $(PRINTF_SRC_DIR)/%.c | $(PRINTF_OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # move flat source files into src/ if they exist in root
@@ -126,6 +141,9 @@ $(INCLUDE_DIR)/%.h: %.h | $(INCLUDE_DIR)
 # create directories
 $(SRC_OBJ_DIR): | $(BUILD_DIR)
 	mkdir -p $(SRC_OBJ_DIR)
+
+$(PRINTF_OBJ_DIR): | $(SRC_OBJ_DIR)
+	mkdir -p $(PRINTF_OBJ_DIR)
 
 $(TEST_OBJ_DIR): | $(BUILD_DIR)
 	mkdir -p $(TEST_OBJ_DIR)

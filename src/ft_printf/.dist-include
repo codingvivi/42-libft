@@ -1,5 +1,0 @@
-src/
-src/*.c
-src/*.h
-Makefile
-README.md
