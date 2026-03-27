@@ -4,6 +4,8 @@
 
 ![](banner.jpg)
 
+*I got accepted to 42!!!*
+
 My (re)implementation of some of the libc functions
 as part of the first 42 project, libft.
 
