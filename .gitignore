@@ -1,0 +1,19 @@
+# Autogen
+## helpers
+.copier-answers.yml
+compile_commands.json
+## build
+.cache/
+bin/
+obj/
+dist/
+*.o
+*.a
+*.out
+*.tar.gz
+## log
+*.log
+vgcore.*
+
+# not mine to push
+ext/ref
