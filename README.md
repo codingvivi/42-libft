@@ -1,9 +1,10 @@
 *This project has been created as part of the 42 curriculum by lrain.*
 
 ![](banner.jpg)
+*I got accepted to 42!!!*
 
 # Libft
-*I got accepted to 42!!!*
+
 
 My (re)implementation of some of the libc functions
 as part of the first 42 project, libft.
