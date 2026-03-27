@@ -18,25 +18,24 @@ for errno:
 
 #include <errno.h>
 
-    if (nmemb > (size_t)-1 / size)
-    {
-        errno = ENOMEM;
-        return (NULL);
-    }
+	if (nmemb > (size_t)-1 / size)
+	{
+		errno = ENOMEM;
+		return (NULL);
+	}
 if count * size > SIZE_MAX
 SIZE_MAX = max size_t, so -1 underflows to it
 divide by size to prevent multiplication from overflowing
 */
 
-void *ft_calloc(size_t nmemb, size_t size)
+void	*ft_calloc(size_t nmemb, size_t size)
 {
-	void  *ret;
-	size_t total_size;
+	void	*ret;
+	size_t	total_size;
 
 	if (!nmemb || !size)
 		return (malloc(0));
-
-	if (nmemb > (size_t) -1 / size)
+	if (nmemb > (size_t)-1 / size)
 		return (malloc(0));
 	total_size = size * nmemb;
 	ret = malloc(total_size);

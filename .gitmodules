@@ -7,3 +7,10 @@
 [submodule "test/ext/Libftest"]
 	path = external/Libftest
 	url = https://github.com/jtoty/Libftest.git
+[submodule "external/francinette"]
+	path = external/francinette
+	url = https://github.com/codingvivi/francinette.git
+	branch = custom-install
+[submodule "external/unity"]
+	path = external/unity
+	url = https://github.com/ThrowTheSwitch/Unity.git

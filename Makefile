@@ -63,15 +63,13 @@ FILES = \
 	ft_lstmap
 
 
-ROOT_DIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
 # code
-SRC_DIR     := $(ROOT_DIR)/src
-INCLUDE_DIR := $(ROOT_DIR)/include
-TEST_SRC_DIR := $(ROOT_DIR)/test
+SRC_DIR     := src
+INCLUDE_DIR := include
+TEST_SRC_DIR := test
 
 # build output
-BUILD_DIR   := $(ROOT_DIR)/build
+BUILD_DIR   := build
 OBJ_DIR     := $(BUILD_DIR)/obj
 SRC_OBJ_DIR := $(OBJ_DIR)/src
 TEST_OBJ_DIR := $(OBJ_DIR)/test
@@ -99,12 +97,15 @@ TEST_OBJS = $(TEST_FILES:%=$(TEST_OBJ_DIR)/%.o)
 DIST_FILES = Makefile README.md $(SRCS) $(HDRS)
 
 # build
-all: $(LIB)
+all: init $(LIB)
 ifeq ($(TURNIN_RUN),true)
-	cp $(LIB) $(ROOT_DIR)/$(NAME)
+	cp $(LIB) $(NAME)
+	cp $(HDRS) .
 endif
 
 bonus: all
+
+$(NAME): all
 
 # archive objects into static library
 $(LIB): $(OBJS) | $(LIB_DIR)
@@ -153,14 +154,16 @@ $(DIST_DIR): | $(BUILD_DIR)
 # initialize project structure from flat layout
 init: $(SRCS) $(HDRS)
 
-# create flat distribution tarball for turnin
-dist: | $(DIST_DIR)
+# create a distribution tarball with the submission files
+dist: stage
+	tar -czf $(DIST_DIR)/$(RELEASE_NAME) -C $(DIST_DIR) $(RELEASE_BASE)
+
+# create flat distribution environment for turnin
+stage: | $(DIST_DIR)
 	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
 	mkdir -p $(DIST_DIR)/$(RELEASE_BASE)
 	cp $(DIST_FILES) $(DIST_DIR)/$(RELEASE_BASE)/
 	sed -i '1i TURNIN_RUN = true' $(DIST_DIR)/$(RELEASE_BASE)/Makefile
-	tar -czf $(DIST_DIR)/$(RELEASE_NAME) -C $(DIST_DIR) $(RELEASE_BASE)
-	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
 
 # build and run tests
 test: $(TEST_NAME)
@@ -173,6 +176,7 @@ $(TEST_NAME): $(LIB) $(TEST_OBJS) | $(TEST_BIN_DIR)
 $(TEST_OBJ_DIR)/%.o: $(TEST_SRC_DIR)/%.c | $(TEST_OBJ_DIR)
 	$(CC) $(TEST_CFLAGS) $(INCLUDES) -c $< -o $@
 
+francinette: 
 # remove object files
 clean:
 	$(RM) $(OBJ_DIR)
@@ -180,12 +184,13 @@ clean:
 # remove all build artifacts
 hclean: clean
 	$(RM) $(LIB) $(TEST_BIN_DIR)/$(TEST_NAME)
-	$(RM) $(ROOT_DIR)/$(NAME)
+	$(RM) $(NAME)
+	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
 
 # flatten back to root (undo init)
 fclean: hclean
-	-mv $(SRC_DIR)/*.c $(ROOT_DIR)/
-	-mv $(INCLUDE_DIR)/*.h $(ROOT_DIR)/
+	-mv $(SRC_DIR)/*.c .
+	-mv $(INCLUDE_DIR)/*.h . 
 ifeq ($(TURNIN_RUN),true)
 	-rmdir $(SRC_DIR) $(INCLUDE_DIR) 2>/dev/null; true
 endif

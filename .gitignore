@@ -14,5 +14,6 @@ CMakeLists.txt
 ref/
 temp/
 build/
+external/francinette/venv
 
 Archive*
