@@ -1,0 +1,3 @@
+[submodule "ext/test/francinette"]
+	path = ext/test/francinette
+	url = https://github.com/Prashant-Bharaj/francinette
