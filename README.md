@@ -2,7 +2,7 @@
 
 # Libft
 
-![](banner.jpg.webp)
+![](banner.jpg)
 
 My (re)implementation of some of the libc functions
 as part of the first 42 project, libft.
