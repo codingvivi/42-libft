@@ -10,7 +10,7 @@ My (re)implementation of some of the libc functions
 as part of the first 42 project, libft.
 
 Instead of writing the same functions from the piscine for the millionth time now,
-I decided to look at how the profis do it,
+I decided to look at how professionals do it,
 and use the very performant and widely compatible
 [musl libc](https://musl.libc.org/)
 as a reference for a lot of my code.
