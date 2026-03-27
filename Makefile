@@ -1,11 +1,10 @@
 NAME = libft.a
-TEST_NAME = runner
+TARGET_EXTENSION = .out
 
 .DEFAULT_GOAL := all
 
 CC         = cc
 CFLAGS     = -Wall -Wextra -Werror -fPIE
-TEST_CFLAGS = $(CFLAGS)
 INCLUDES   = -I./src -I./src/ft_printf -I./include
 
 AR = ar -rcs
@@ -70,17 +69,20 @@ PRINTF_FILES = \
 	ft_pf_putstr_fd
 
 # code
-SRC_DIR     := src
+SRC_DIR        := src
 PRINTF_SRC_DIR := $(SRC_DIR)/ft_printf
-INCLUDE_DIR := include
-TEST_SRC_DIR := test
+INCLUDE_DIR    := include
+TEST_SRC_DIR   := test
+UNITY_SRC_DIR  := external/unity/src
+UNITY_AUTO_DIR := external/unity/auto
 
 # build output
-BUILD_DIR   := build
-OBJ_DIR     := $(BUILD_DIR)/obj
-SRC_OBJ_DIR := $(OBJ_DIR)/src
+BUILD_DIR      := build
+OBJ_DIR        := $(BUILD_DIR)/obj
+SRC_OBJ_DIR    := $(OBJ_DIR)/src
 PRINTF_OBJ_DIR := $(SRC_OBJ_DIR)/ft_printf
-TEST_OBJ_DIR := $(OBJ_DIR)/test
+TEST_OBJ_DIR   := $(OBJ_DIR)/test
+UNITY_OBJ_DIR  := $(OBJ_DIR)/unity
 
 # build results
 BIN_DIR      := $(BUILD_DIR)/bin
@@ -88,12 +90,13 @@ SRC_BIN_DIR  := $(BIN_DIR)/src
 TEST_BIN_DIR := $(BIN_DIR)/test
 LIB_DIR      := $(BUILD_DIR)/lib
 
+# test runner generation
+TEST_RUNNER_DIR := $(BUILD_DIR)/test/runner_src
+
 # dist
 DIST_DIR := $(BUILD_DIR)/dist
 
 HEADER_FILES = libft
-
-TEST_FILES = main
 
 SRCS = $(FILES:%=$(SRC_DIR)/%.c)
 PRINTF_SRCS = $(PRINTF_FILES:%=$(PRINTF_SRC_DIR)/%.c)
@@ -102,8 +105,13 @@ OBJS = $(FILES:%=$(SRC_OBJ_DIR)/%.o)
 PRINTF_OBJS = $(PRINTF_FILES:%=$(PRINTF_OBJ_DIR)/%.o)
 ALL_OBJS = $(OBJS) $(PRINTF_OBJS)
 LIB  = $(LIB_DIR)/$(NAME)
-TEST_SRCS = $(TEST_FILES:%=$(TEST_SRC_DIR)/%.c)
-TEST_OBJS = $(TEST_FILES:%=$(TEST_OBJ_DIR)/%.o)
+
+TEST_CFLAGS   = -g -Wall -Wextra
+TEST_INCLUDES = $(INCLUDES) -I$(UNITY_SRC_DIR) -I$(TEST_SRC_DIR)
+
+TEST_SRC_FILES = $(wildcard $(TEST_SRC_DIR)/test_*.c)
+TEST_NAMES     = $(patsubst $(TEST_SRC_DIR)/test_%.c,%,$(TEST_SRC_FILES))
+TEST_BINS      = $(addprefix $(TEST_BIN_DIR)/test_,$(addsuffix _Runner$(TARGET_EXTENSION),$(TEST_NAMES)))
 
 DIST_FILES = Makefile README.md $(SRCS) $(HDRS)
 
@@ -145,14 +153,11 @@ $(SRC_OBJ_DIR): | $(BUILD_DIR)
 $(PRINTF_OBJ_DIR): | $(SRC_OBJ_DIR)
 	mkdir -p $(PRINTF_OBJ_DIR)
 
-$(TEST_OBJ_DIR): | $(BUILD_DIR)
-	mkdir -p $(TEST_OBJ_DIR)
+$(TEST_OBJ_DIR) $(UNITY_OBJ_DIR) $(TEST_RUNNER_DIR) $(TEST_BIN_DIR): | $(BUILD_DIR)
+	mkdir -p $@
 
 $(SRC_BIN_DIR): | $(BUILD_DIR)
 	mkdir -p $(SRC_BIN_DIR)
-
-$(TEST_BIN_DIR): | $(BUILD_DIR)
-	mkdir -p $(TEST_BIN_DIR)
 
 $(LIB_DIR): | $(BUILD_DIR)
 	mkdir -p $(LIB_DIR)
@@ -183,25 +188,47 @@ stage: | $(DIST_DIR)
 	cp $(DIST_FILES) $(DIST_DIR)/$(RELEASE_BASE)/
 	sed -i '1i TURNIN_RUN = true' $(DIST_DIR)/$(RELEASE_BASE)/Makefile
 
-# build and run tests
-test: $(TEST_NAME)
+# build all tests
+test: $(TEST_BINS)
 
-# link test runner
-$(TEST_NAME): $(LIB) $(TEST_OBJS) | $(TEST_BIN_DIR)
-	$(CC) $(CFLAGS) $(TEST_OBJS) $(LIB) -o $(TEST_BIN_DIR)/$(TEST_NAME)
+# build a single test: make test-ft_strlen, make test-ft_atoi, etc.
+test-%: $(TEST_BIN_DIR)/test_%_Runner$(TARGET_EXTENSION)
+	@true
 
-# compile test files to objects
-$(TEST_OBJ_DIR)/%.o: $(TEST_SRC_DIR)/%.c | $(TEST_OBJ_DIR)
-	$(CC) $(TEST_CFLAGS) $(INCLUDES) -c $< -o $@
+.PRECIOUS: $(TEST_RUNNER_DIR)/test_%_Runner.c $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/test_%_Runner.o
 
-francinette: 
+# link test binary
+$(TEST_BIN_DIR)/test_%_Runner$(TARGET_EXTENSION): $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/test_%_Runner.o $(UNITY_OBJ_DIR)/unity.o $(TEST_OBJ_DIR)/helpers.o $(LIB) | $(TEST_BIN_DIR)
+	$(CC) $(TEST_CFLAGS) $^ -o $@
+
+# compile test source files
+$(TEST_OBJ_DIR)/test_%.o: $(TEST_SRC_DIR)/test_%.c | $(TEST_OBJ_DIR)
+	$(CC) $(TEST_CFLAGS) $(TEST_INCLUDES) -c $< -o $@
+
+# compile test helpers
+$(TEST_OBJ_DIR)/helpers.o: $(TEST_SRC_DIR)/helpers.c $(TEST_SRC_DIR)/helpers.h | $(TEST_OBJ_DIR)
+	$(CC) $(TEST_CFLAGS) $(TEST_INCLUDES) -c $< -o $@
+
+# generate test runner source via Unity
+$(TEST_RUNNER_DIR)/test_%_Runner.c: $(TEST_SRC_DIR)/test_%.c | $(TEST_RUNNER_DIR)
+	ruby $(UNITY_AUTO_DIR)/generate_test_runner.rb $< $@
+
+# compile generated test runner
+$(TEST_OBJ_DIR)/test_%_Runner.o: $(TEST_RUNNER_DIR)/test_%_Runner.c | $(TEST_OBJ_DIR)
+	$(CC) $(TEST_CFLAGS) $(TEST_INCLUDES) -c $< -o $@
+
+# compile unity
+$(UNITY_OBJ_DIR)/unity.o: $(UNITY_SRC_DIR)/unity.c | $(UNITY_OBJ_DIR)
+	$(CC) $(CFLAGS) -I$(UNITY_SRC_DIR) -c $< -o $@
+
+ 
 # remove object files
 clean:
 	$(RM) $(OBJ_DIR)
 
 # remove all build artifacts
 hclean: clean
-	$(RM) $(LIB) $(TEST_BIN_DIR)/$(TEST_NAME)
+	$(RM) $(LIB) $(TEST_BIN_DIR) $(TEST_RUNNER_DIR)
 	$(RM) $(NAME)
 	$(RM) $(DIST_DIR)/$(RELEASE_BASE)
 
@@ -216,4 +243,4 @@ endif
 # full rebuild
 re: hclean all
 
-.PHONY: all bonus init dist test clean fclean hclean re
+.PHONY: all bonus init dist test test-% clean fclean hclean re

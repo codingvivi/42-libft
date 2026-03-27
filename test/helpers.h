@@ -13,8 +13,8 @@
 #ifndef HELPERS_H
 
 // # include <assert.h>
-#include "../libft.h"
-#include "../unity/src/unity.h"
+#include "libft.h"
+#include "unity.h"
 #include <stdbool.h>
 #include <stdio.h>
 

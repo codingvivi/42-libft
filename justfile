@@ -24,6 +24,31 @@ install-francinette:
     python3 -m venv external/francinette/venv
     external/francinette/venv/bin/pip3 install -r external/francinette/requirements.txt
 
+test *names:
+    #!/usr/bin/env nu
+    let bins = if ("{{names}}" | str trim | is-empty) {
+        make test
+        glob build/bin/test/*_Runner.out
+    } else {
+        "{{names}}" | split row " " | each {|name|
+            make $"test-($name)"
+            $"build/bin/test/test_($name)_Runner.out"
+        }
+    }
+    let pred = {|bin|
+        print $"===> Running: ($bin)"
+        do -i { run-external $bin }
+        let code = $env.LAST_EXIT_CODE
+        print ""
+        $code != 0
+    }
+    let failed = $bins | where $pred
+    if ($failed | is-not-empty) {
+        print $"(ansi red)FAILED ((ansi reset)($failed | length)(ansi red)):(ansi reset)"
+        $failed | each {|b| print $"  ($b)" }
+        exit 1
+    }
+
 test-francinette *args:
     make stage
     cd {{stage-dir}} && bash {{francinette-bin}} {{args}}

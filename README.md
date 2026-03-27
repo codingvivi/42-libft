@@ -5,9 +5,139 @@
 
 # Libft
 
-
 My (re)implementation of some of the libc functions
 as part of the first 42 project, libft.
+
+## Instructions
+
+### External dependencies
+
+For all of my submission
+and most of this repo
+`make` is sufficient.
+For a few niceties
+like running all tests at once
+and testing compilation before building
+you will need:
+
+- [`just`](https://github.com/casey/just)
+- [`nushell`](https://www.nushell.sh/)
+- `ruby` (for Unity test runner generation)
+
+### Building the library and a release for submission
+
+With the addition of the subsequent 42 projects that have us expand libft,
+the repo now uses a [Pitchfork](https://joholl.github.io/pitchfork-website/)-inspired layout
+so the working tree stays tidy:
+source files live in `src/`,
+headers in `include/`,
+tests in `test/`,
+and so on.
+However,
+the original instructions
+(and deepthought probably,
+even through I shouldn't run into it after GNL)
+expects a flat directory
+with all `.c` and `.h` files at the root next to the Makefile.
+Thus I set up a build system that will take the repo to and from a flat structure
+for submissions
+and retain an orderly structure for actually working in it:
+
+- `make init`:
+  Moves any flat `.c`/`.h` files from the root
+  into `src/` and `include/`.
+  Idempotent — only fires when the files still sit at root.
+
+- `make` / `make all`:
+  Builds `libft.a` from `src/` and `include/`.
+  When running inside a turn-in archive (`TURNIN_RUN=true`),
+  it also copies the library to the project root
+  so the autochecker finds it.
+
+- `make fclean`:
+  Undoes `init` — moves `.c` and `.h` files back to the root
+  and cleans build artifacts.
+  The now-empty `src/` and `include/` directories
+  are only removed when `TURNIN_RUN=true`;
+  in the normal dev environment `src/` is kept
+  because it contains a `.clang-tidy`
+  that provides linting according to the school norm.
+
+- `make hclean`:
+  The old `fclean` — removes build artifacts
+  without flattening.
+
+- `make clean`:
+  Removes object files only.
+
+- `make re`:
+  Full rebuild (`hclean` + `all`).
+
+- `make bonus`:
+  Legacy alias for `all`,
+  kept for older external testers
+  that check for a `bonus` rule.
+
+- `make stage`:
+  Creates a flat distribution environment in `build/dist/`
+  with `TURNIN_RUN=true` injected into the Makefile.
+  Used by francinette and for submission testing.
+
+- `make dist`:
+  Creates a tarball to be downloaded
+  and extracted onto a school computer
+  and then turned in.
+  In future projects
+  I used github releases for this.
+
+- `just build-dist`:
+  Full clean rebuild followed by `make dist`.
+  If compilation fails,
+  there's no use in building either.
+
+### Building and running tests
+
+#### Own tests (Unity)
+
+Tests live in `test/` and use the
+[Unity](https://github.com/ThrowTheSwitch/Unity) test framework.
+
+- `just test`:
+  Builds and runs all tests.
+- `just test <name> [name ...]`:
+  Builds and runs specific tests,
+  e.g. `just test ft_strlen ft_atoi`.
+- `make test`:
+  Builds all test binaries (without running them).
+- `make test-<name>`:
+  Builds a single test binary,
+  e.g. `make test-ft_strlen`.
+
+Test binaries are placed in `build/bin/test/`.
+
+#### Francinette
+
+If you have francinette installed,
+you can just use it by creating a folder
+mirroring the submission repo
+using
+
+```sh
+make stage
+cd build/dist/libft_turnin_
+francinette #or paco
+```
+
+Otherwise, use my just commands to install and run francinette:
+
+```sh
+just install-francinette
+just test-francinette
+# you can also pass francinette flags, like
+just test-francinette --strict
+```
+
+## Description
 
 Instead of writing the same functions from the piscine for the millionth time now,
 I decided to look at how professionals do it,
@@ -17,12 +147,10 @@ as a reference for a lot of my code.
 A decision I don't regret,
 these people are cracked!
 
-## Description
+### Libc Functions
 
 As per the guidelines,
 my library includes the following:
-
-### Libc Functions
 
 - `ft_isalpha`:
   Checks if a character is an alphabetic letter.
@@ -114,6 +242,16 @@ my library includes the following:
 - `ft_putnbr_fd`:
   Writes an integer `n` to the given file descriptor `fd`.
 
+### Functions added since turnin
+
+#### ft_printf
+
+Added as a subtree from the subsequent [42 printf project](https://github.com/codingvivi/42-ft_printf).
+Implements a simplified `printf` supporting `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X`, and `%%`.
+
+- `ft_printf`:
+  Formatted output to stdout, returns number of characters printed.
+
 ### Linked list (formerly bonus)
 
 - `ft_lstnew`:
@@ -140,137 +278,6 @@ my library includes the following:
   Creates a new list
   by applying a function `f`
   to each element's content of the original list.
-
-## Instructions
-
-### Quickstart
-
-#### Compilation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/codingvivi/42_libft.git
-   cd 42_libft
-   ```
-
-   or whatever URL and folder name the campus repo has.
-
-1. **Build the library:**
-   To build the static library `libft.a`,
-   run the `make` command:
-
-   ```bash
-   make
-   ```
-
-   or
-
-   ```bash
-   make all
-   ```
-
-   When cloning from my personal repo,
-   run
-
-   ```bash
-   make test
-   ```
-
-   to run my own battery of tests.
-
-#### Usage
-
-To use the library in C project:
-
-1. Include the header file `libft.h` in your source files:
-
-   ```c
-   #include "libft.h"
-   ```
-
-1. When compiling your project,
-   link the `libft.a` library:
-
-   ```bash
-   cc your_project.c -L. -lft -o your_project
-   ```
-
-   (This assumes `libft.a` is in the current directory.
-   Adjust the path with `-L` if it's elsewhere.)
-
-### Project layout
-
-With the addition of the subsequent 42 projects that have us expand libft,
-the repo now uses a [Pitchfork](https://joholl.github.io/pitchfork-website/)-inspired layout
-so the working tree stays tidy:
-source files live in `src/`,
-headers in `include/`,
-tests in `test/`,
-and so on.
-However,
-the original instructions
-(and deep thought probably,
-even through I shouldn't run into it after GNL)
-expects a flat directory
-with all `.c` and `.h` files at the root next to the Makefile.
-Thus I set up a build system that will take the repo to and from a flat structure
-for submissions
-and retain an orderly structure for actually working in it:
-
-- `make init`:
-  Moves any flat `.c`/`.h` files from the root
-  into `src/` and `include/`.
-  Idempotent — only fires when the files still sit at root.
-- `make` / `make all`:
-  Builds `libft.a` from `src/` and `include/`.
-  When running inside a turn-in archive (`TURNIN_RUN=true`),
-  it also copies the library to the project root
-  so the autochecker finds it.
-- `make dist RELEASE_TAG=<tag>`:
-  Creates a flat tarball (`build/dist/libft_turnin_<tag>.tar.gz`)
-  containing only the files required for submission.
-  It prepends `TURNIN_RUN = true` to the bundled Makefile
-  so `make` / `make fclean` behave correctly inside the flat layout.
-- `make fclean`:
-  Undoes `init` — moves `.c` and `.h` files back to the root
-  and cleans build artifacts.
-  The now-empty `src/` and `include/` directories
-  are only removed when `TURNIN_RUN=true`;
-  in the normal dev environment `src/` is kept
-  because it contains a `.clang-tidy`
-  that provides linting according to the school norm.
-- `make hclean`:
-  The old `fclean` — removes build artifacts
-  without flattening.
-- `make clean`:
-  Removes object files only.
-- `make re`:
-  Full rebuild (`hclean` + `all`).
-- `make bonus`:
-  Legacy alias for `all`,
-  kept for older external testers
-  that check for a `bonus` rule.
-- `make stage`:
-  Creates a flat distribution environment in `build/dist/`
-  with `TURNIN_RUN=true` injected into the Makefile.
-  Used by francinette and for submission testing.
-
-### Justfile recipes
-
-Requires [just](https://github.com/casey/just).
-
-- `just build-dist`:
-  Full clean rebuild followed by `make dist`.
-- `just install-francinette`:
-  Adds francinette as a git submodule,
-  initializes its submodules (tester repos),
-  creates a Python venv, and installs dependencies.
-- `just test-francinette [args]`:
-  Stages a flat copy of the project
-  and runs francinette against it.
-  Pass flags like `just test-francinette --strict`
-  or `just test-francinette --bonus`.
 
 ## Resources
 

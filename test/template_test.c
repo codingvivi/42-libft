@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../libft.h"
-#include "../unity/src/unity.h"
+#include "libft.h"
+#include "unity.h"
 
 void	setUp(void)
 {
