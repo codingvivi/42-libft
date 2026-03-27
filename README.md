@@ -208,14 +208,12 @@ source files live in `src/`,
 headers in `include/`,
 tests in `test/`,
 and so on.
-
 However,
 the original instructions
 (and deep thought probably,
 even through I shouldn't run into it after GNL)
 expects a flat directory
 with all `.c` and `.h` files at the root next to the Makefile.
-
 Thus I set up a build system that will take the repo to and from a flat structure
 for submissions
 and retain an orderly structure for actually working in it:
