@@ -242,16 +242,6 @@ my library includes the following:
 - `ft_putnbr_fd`:
   Writes an integer `n` to the given file descriptor `fd`.
 
-### Functions added since turnin
-
-#### ft_printf
-
-Added as a subtree from the subsequent [42 printf project](https://github.com/codingvivi/42-ft_printf).
-Implements a simplified `printf` supporting `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X`, and `%%`.
-
-- `ft_printf`:
-  Formatted output to stdout, returns number of characters printed.
-
 ### Linked list (formerly bonus)
 
 - `ft_lstnew`:
@@ -278,7 +268,16 @@ Implements a simplified `printf` supporting `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, 
   Creates a new list
   by applying a function `f`
   to each element's content of the original list.
+  
+### Functions added since turnin
 
+#### ft_printf
+
+Added as a subtree from the subsequent [42 printf project](https://github.com/codingvivi/42-ft_printf).
+Implements a simplified `printf` supporting `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X`, and `%%`.
+
+- `ft_printf`:
+  Formatted output to stdout, returns number of characters printed.
 ## Resources
 
 ### References
